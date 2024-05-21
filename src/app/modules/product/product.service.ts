@@ -8,7 +8,7 @@ const createProductIntoDB = async (product: TProduct) => {
   return result;
 };
 
-// get all product from db query using mongoose
+// get all product and search from db query using mongoose
 const getAllProductIntoDB = async (searchTerm: string) => {
   if (searchTerm) {
     const result = await Product.find({

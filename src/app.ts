@@ -20,4 +20,12 @@ app.get('/', (req: Request, res: Response) => {
   });
 });
 
+// when any route not found then give this message
+app.get('*', (req: Request, res: Response) => {
+  res.json({
+    success: false,
+    message: 'Route not found',
+  });
+});
+
 export default app;

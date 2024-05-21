@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import OrderValidationSchema from './order.validation';
 import { OrderServices } from './order.service';
+import { ProductServices } from '../product/product.service';
 
 // create order controller
 const createOrder = async (req: Request, res: Response) => {
@@ -10,6 +11,34 @@ const createOrder = async (req: Request, res: Response) => {
 
     // validation order using zod
     const validateOrderData = OrderValidationSchema.parse(order);
+
+    // get product details
+    const product = await ProductServices.getSingleProductIntoDB(
+      validateOrderData.productId,
+    );
+
+    // if product not found then rend message
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found',
+      });
+    }
+
+    // if the ordered quantity is gather then product quantity
+    if (validateOrderData.quantity > product.inventory.quantity) {
+      return res.status(400).json({
+        success: false,
+        message: 'Insufficient quantity available in inventory',
+      });
+    }
+
+    // update product inventory quantity and inStock
+    product.inventory.quantity -= validateOrderData.quantity;
+    product.inventory.inStock = product.inventory.quantity > 0;
+
+    // update the product using the order data following
+    await ProductServices.updateProductIntoDB(product._id.toString(), product);
 
     // call service and create order
     const result = await OrderServices.createOrderIntoDB(validateOrderData);
@@ -31,7 +60,7 @@ const createOrder = async (req: Request, res: Response) => {
   }
 };
 
-// getall orders controller or email by orders
+// get all orders controller or email by orders
 const getAllOrder = async (req: Request, res: Response) => {
   try {
     // get email by query
@@ -41,11 +70,14 @@ const getAllOrder = async (req: Request, res: Response) => {
 
     // response all order data
     return res.status(200).json({
-      success: true,
-      message: email
-        ? 'Orders fetched successfully!'
-        : 'Orders fetched successfully for user email!',
-      data: result,
+      success: result.length === 0 ? false : true,
+      message:
+        email && result.length > 0
+          ? 'Orders fetched successfully for user email!'
+          : result.length === 0
+            ? 'Order not found'
+            : 'Orders fetched successfully!',
+      data: result.length > 0 ? result : null,
     });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {

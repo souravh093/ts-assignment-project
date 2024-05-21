@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Request, Response } from 'express';
 import ProductValidationSchema from './product.validation';
 import { ProductServices } from './product.service';
@@ -5,7 +6,7 @@ import { ProductServices } from './product.service';
 // create product controller
 const createProduct = async (req: Request, res: Response) => {
   try {
-    // get product from client side
+    // get product data from client side
     const product = req.body;
 
     // validation data using zod
@@ -34,13 +35,18 @@ const createProduct = async (req: Request, res: Response) => {
 // get products controller
 const getAllProduct = async (req: Request, res: Response) => {
   try {
+    const { searchTerm } = req.query;
     // get product using call service function
-    const result = await ProductServices.getAllProductIntoDB();
+    const result = await ProductServices.getAllProductIntoDB(
+      searchTerm as string,
+    );
 
     // response for get all product
     res.status(200).json({
       success: true,
-      message: 'Products fetched successfully!',
+      message: searchTerm
+        ? `Products matching search term ${searchTerm} fetched successfully!`
+        : 'Products fetched successfully!',
       data: result,
     });
   } catch (error: any) {
@@ -110,13 +116,13 @@ const deleteProduct = async (req: Request, res: Response) => {
     const { productId } = req.params;
 
     // update data pass two arguments
-    const result = await ProductServices.deleteProductIntoDB(productId);
+    await ProductServices.deleteProductIntoDB(productId);
 
     // response data
     res.status(200).json({
       success: true,
       message: 'Product deleted successfully!',
-      data: result,
+      data: null,
     });
   } catch (error: any) {
     // send error response to the client

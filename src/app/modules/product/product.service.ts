@@ -9,10 +9,18 @@ const createProductIntoDB = async (product: TProduct) => {
 };
 
 // get all product from db query using mongoose
-const getAllProductIntoDB = async () => {
-  const result = await Product.find();
+const getAllProductIntoDB = async (searchTerm: string) => {
+  if (searchTerm) {
+    const result = await Product.find({
+      name: { $regex: searchTerm, $options: 'i' },
+    });
 
-  return result;
+    return result;
+  } else {
+    const result = await Product.find();
+
+    return result;
+  }
 };
 
 // get single product form db query using mongoose

@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import ProductValidationSchema from './product.validation';
 import { ProductServices } from './product.service';
+import { ZodError } from 'zod';
 
 // create product controller
 const createProduct = async (req: Request, res: Response) => {
@@ -23,11 +24,19 @@ const createProduct = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof ZodError) {
+      const errorMessage = error.issues.map((issue) => issue.message);
+
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errorMessage,
+      });
+    }
     // send error response to the client
     return res.status(500).json({
       success: false,
       message: error.message || 'Something went wrong',
-      error,
     });
   }
 };
@@ -53,11 +62,19 @@ const getAllProduct = async (req: Request, res: Response) => {
       data: result.length > 0 ? result : null,
     });
   } catch (error: any) {
+    if (error instanceof ZodError) {
+      const errorMessage = error.issues.map((issue) => issue.message);
+
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errorMessage,
+      });
+    }
     // send error response to the client
     return res.status(500).json({
       success: false,
       message: error.message || 'Something went wrong',
-      error,
     });
   }
 };
@@ -77,11 +94,19 @@ const getSingleProduct = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof ZodError) {
+      const errorMessage = error.issues.map((issue) => issue.message);
+
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errorMessage,
+      });
+    }
     // send error response to the client
     return res.status(500).json({
       success: false,
       message: error.message || 'Something went wrong',
-      error,
     });
   }
 };
@@ -101,10 +126,6 @@ const updateProduct = async (req: Request, res: Response) => {
       updateValidateData,
     );
 
-    if (!result) {
-      return;
-    }
-
     // response data
     return res.status(200).json({
       success: true,
@@ -112,6 +133,15 @@ const updateProduct = async (req: Request, res: Response) => {
       data: result,
     });
   } catch (error: any) {
+    if (error instanceof ZodError) {
+      const errorMessage = error.issues.map((issue) => issue.message);
+
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errorMessage,
+      });
+    }
     // send error response to the client
     return res.status(500).json({
       success: false,
@@ -135,6 +165,15 @@ const deleteProduct = async (req: Request, res: Response) => {
       data: null,
     });
   } catch (error: any) {
+    if (error instanceof ZodError) {
+      const errorMessage = error.issues.map((issue) => issue.message);
+
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errorMessage,
+      });
+    }
     // send error response to the client
     return res.status(500).json({
       success: false,
